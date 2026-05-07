@@ -1,0 +1,54 @@
+internal/traces/config.go
+  s_0ee7671061ee88::t_e355b9befbad47 20-25
+internal/cli/metrics_up_down_counter.go
+  s_0ee7671061ee88::t_e355b9befbad47 42-43,46
+internal/cli/traces.go
+  s_0ee7671061ee88::t_e355b9befbad47 86-87,90,117-121,123-130
+internal/metrics/config.go
+  s_0ee7671061ee88::t_e355b9befbad47 18-23
+internal/cli/otlp.go
+  s_0ee7671061ee88::t_e355b9befbad47 1-51
+internal/logs/logs.go
+  s_0ee7671061ee88::t_e355b9befbad47 126-133,143-147
+internal/cli/logs.go
+  s_0ee7671061ee88::t_e355b9befbad47 60-61,64
+README.md
+  s_0ee7671061ee88::t_659b89f16b6e8d 83-85,150-168
+internal/cli/flags.go
+  s_0ee7671061ee88::t_e355b9befbad47 41-47
+internal/cli/metrics_exponential_histogram.go
+  s_0ee7671061ee88::t_e355b9befbad47 61-62,65
+internal/cli/metrics_root.go
+  s_0ee7671061ee88::t_e355b9befbad47 118-122,124-131
+internal/cli/metrics_guage.go
+  s_0ee7671061ee88::t_e355b9befbad47 51-52,55
+internal/cli/metrics_histogram.go
+  s_0ee7671061ee88::t_e355b9befbad47 51-52,55
+internal/cli/metrics_sum.go
+  s_0ee7671061ee88::t_e355b9befbad47 46-47,50
+internal/cli/metrics_counter.go
+  s_0ee7671061ee88::t_e355b9befbad47 42-43,46
+internal/logs/config.go
+  s_0ee7671061ee88::t_e355b9befbad47 18-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "f9b8eb06df29e988d577783a464ce4a104c6e749",
+  "prompts": {},
+  "humans": {
+    "h_623774b620da8e": {
+      "author": "WenyXu <wenymedia@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_0ee7671061ee88": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1fe182c00ffepJnTvOvSJ2nKWd",
+        "model": "gpt-5.4"
+      },
+      "human_author": "WenyXu <wenymedia@gmail.com>"
+    }
+  }
+}
