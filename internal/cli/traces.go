@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -84,16 +83,11 @@ func genTracesCommand() *cli.Command {
 }
 
 func generateTraces(c *cli.Context, isSingle bool) error {
-	if c.String("otel-exporter-otlp-endpoint") == "" {
-		return errors.New("'otel-exporter-otlp-endpoint' must be set")
+	if err := validateOTLPEndpointFlags(c); err != nil {
+		return err
 	}
 
-	tracesCfg := &traces.Config{
-		Endpoint:    c.String("otel-exporter-otlp-endpoint"),
-		ServiceName: c.String("service-name"),
-		Insecure:    c.Bool("insecure"),
-		UseHTTP:     c.String("protocol") == "http",
-	}
+	tracesCfg := newTracesConfig(c)
 
 	if isSingle {
 		tracesCfg.NumTraces = 1
@@ -116,14 +110,24 @@ func generateTraces(c *cli.Context, isSingle bool) error {
 	}
 
 	grpcExpOpt := []otlptracegrpc.Option{
-		otlptracegrpc.WithEndpoint(tracesCfg.Endpoint),
 		otlptracegrpc.WithDialOption(
 			grpc.WithBlock(),
 		),
 	}
+	if tracesCfg.EndpointURL != "" {
+		grpcExpOpt = append(grpcExpOpt, otlptracegrpc.WithEndpointURL(tracesCfg.EndpointURL))
+	} else {
+		grpcExpOpt = append(grpcExpOpt, otlptracegrpc.WithEndpoint(tracesCfg.Endpoint))
+	}
 
-	httpExpOpt := []otlptracehttp.Option{
-		otlptracehttp.WithEndpoint(tracesCfg.Endpoint),
+	httpExpOpt := []otlptracehttp.Option{}
+	if tracesCfg.EndpointURL != "" {
+		httpExpOpt = append(httpExpOpt, otlptracehttp.WithEndpointURL(tracesCfg.EndpointURL))
+	} else {
+		httpExpOpt = append(httpExpOpt, otlptracehttp.WithEndpoint(tracesCfg.Endpoint))
+	}
+	if tracesCfg.URLPath != "" {
+		httpExpOpt = append(httpExpOpt, otlptracehttp.WithURLPath(tracesCfg.URLPath))
 	}
 
 	if tracesCfg.Insecure {

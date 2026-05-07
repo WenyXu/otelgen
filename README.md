@@ -80,7 +80,9 @@ GLOBAL OPTIONS:
    --help, -h                           show help (default: false)
    --insecure, -i                       whether to enable client transport security (default: false)
    --log-level value                    log level used by the logger, one of: debug, info, warn, error (default: "info")
-   --otel-exporter-otlp-endpoint value  target URL to exporter endpoint
+   --otel-exporter-otlp-endpoint value      target URL to exporter endpoint
+   --otel-exporter-otlp-endpoint-url value  full OTLP collector URL; overrides host:port endpoint when set
+   --otel-exporter-otlp-url-path value      HTTP OTLP URL path override, for example /v1/otlp/v1/traces
    --protocol value, -p value           the transport protocol, one of: grpc, http (default: "grpc")
    --rate value, -r value               rate in seconds (default: 5)
    --service-name value, -s value       service name to use (default: "otelgen")
@@ -145,6 +147,25 @@ $ otelgen --otel-exporter-otlp-endpoint api.vendor.xyz:443 \
     traces single
 ```
 
+If your vendor expects OTLP/HTTP on a custom path, override the path directly:
+
+```sh
+$ otelgen \
+    --protocol http \
+    --otel-exporter-otlp-endpoint api.vendor.xyz:443 \
+    --otel-exporter-otlp-url-path /v1/otlp/v1/traces \
+    traces single
+```
+
+If you already have the full collector URL, you can provide it in one flag instead:
+
+```sh
+$ otelgen \
+    --protocol http \
+    --otel-exporter-otlp-endpoint-url https://api.vendor.xyz/v1/otlp/v1/traces \
+    traces single
+```
+
 ### Metrics
 
 The `otelgen metrics` command supports many different **metric** types. Here is an example of how to generate metrics:
@@ -198,5 +219,4 @@ $  otelgen --otel-exporter-otlp-endpoint localhost:4317 --insecure logs
 2024-09-29T15:03:10.093+1000	INFO	logs/logs.go:177	starting log generation	{"worker": 0, "worker_id": 0}
 2024-09-29T15:03:18.976+1000	INFO	logs/logs.go:138	log generation completed	{"total_logs": 30}
 ```
-
 

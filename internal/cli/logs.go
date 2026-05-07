@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -58,16 +57,11 @@ func genLogsCommand() *cli.Command {
 }
 
 func generateLogs(c *cli.Context, isSingle bool) error {
-	if c.String("otel-exporter-otlp-endpoint") == "" {
-		return errors.New("'otel-exporter-otlp-endpoint' must be set")
+	if err := validateOTLPEndpointFlags(c); err != nil {
+		return err
 	}
 
-	logsCfg := &logs.Config{
-		Endpoint:    c.String("otel-exporter-otlp-endpoint"),
-		ServiceName: c.String("service-name"),
-		Insecure:    c.Bool("insecure"),
-		UseHTTP:     c.String("protocol") == "http",
-	}
+	logsCfg := newLogsConfig(c)
 
 	// Handle single log generation
 	if isSingle {

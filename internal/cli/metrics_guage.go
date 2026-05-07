@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/krzko/otelgen/internal/metrics"
@@ -49,16 +48,11 @@ var generateMetricsGaugeCommand = &cli.Command{
 }
 
 func generateMetricsGaugeAction(c *cli.Context) error {
-	if c.String("otel-exporter-otlp-endpoint") == "" {
-		return errors.New("'otel-exporter-otlp-endpoint' must be set")
+	if err := validateOTLPEndpointFlags(c); err != nil {
+		return err
 	}
 
-	metricsCfg := &metrics.Config{
-		TotalDuration: time.Duration(c.Int("duration") * int(time.Second)),
-		Endpoint:      c.String("otel-exporter-otlp-endpoint"),
-		Rate:          c.Int64("rate"),
-		ServiceName:   c.String("service-name"),
-	}
+	metricsCfg := newMetricsConfig(c)
 
 	configureLogging(c)
 

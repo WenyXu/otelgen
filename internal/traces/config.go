@@ -17,10 +17,12 @@ type Config struct {
 	Scenarios        []string
 
 	// OTLP config
-	Endpoint string
-	Insecure bool
-	UseHTTP  bool
-	Headers  HeaderValue
+	Endpoint    string
+	EndpointURL string
+	URLPath     string
+	Insecure    bool
+	UseHTTP     bool
+	Headers     HeaderValue
 }
 
 type HeaderValue map[string]string

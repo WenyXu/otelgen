@@ -123,8 +123,14 @@ func createExporter(c *Config) (sdklog.Exporter, error) {
 	var err error
 
 	if c.UseHTTP {
-		opts := []otlploghttp.Option{
-			otlploghttp.WithEndpoint(c.Endpoint),
+		opts := []otlploghttp.Option{}
+		if c.EndpointURL != "" {
+			opts = append(opts, otlploghttp.WithEndpointURL(c.EndpointURL))
+		} else {
+			opts = append(opts, otlploghttp.WithEndpoint(c.Endpoint))
+		}
+		if c.URLPath != "" {
+			opts = append(opts, otlploghttp.WithURLPath(c.URLPath))
 		}
 		if c.Insecure {
 			opts = append(opts, otlploghttp.WithInsecure())
@@ -134,8 +140,11 @@ func createExporter(c *Config) (sdklog.Exporter, error) {
 		}
 		exp, err = otlploghttp.New(ctx, opts...)
 	} else {
-		opts := []otlploggrpc.Option{
-			otlploggrpc.WithEndpoint(c.Endpoint),
+		opts := []otlploggrpc.Option{}
+		if c.EndpointURL != "" {
+			opts = append(opts, otlploggrpc.WithEndpointURL(c.EndpointURL))
+		} else {
+			opts = append(opts, otlploggrpc.WithEndpoint(c.Endpoint))
 		}
 		if c.Insecure {
 			opts = append(opts, otlploggrpc.WithInsecure())

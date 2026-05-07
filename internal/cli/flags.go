@@ -38,6 +38,14 @@ func getGlobalFlags() []cli.Flag {
 			// Required: true,
 		}),
 		altsrc.NewStringFlag(&cli.StringFlag{
+			Name:  "otel-exporter-otlp-endpoint-url",
+			Usage: "full OTLP collector URL; overrides host:port endpoint when set",
+		}),
+		altsrc.NewStringFlag(&cli.StringFlag{
+			Name:  "otel-exporter-otlp-url-path",
+			Usage: "HTTP OTLP URL path override, for example /v1/otlp/v1/traces",
+		}),
+		altsrc.NewStringFlag(&cli.StringFlag{
 			Name:    "protocol",
 			Usage:   "the transport protocol, one of: grpc, http",
 			Aliases: []string{"p"},
