@@ -78,9 +78,9 @@ func (w *worker) simulateTraces() {
 	var i int
 
 	for w.running.Load() {
-		w.logger.Info("starting traces")
+		w.logger.Debug("starting traces")
 		for _, scenario := range w.scenarios {
-			w.logger.Info("generating scenario", zap.String("scenario", scenario))
+			w.logger.Debug("generating scenario", zap.String("scenario", scenario))
 
 			ctx, sp := tracer.Start(context.Background(), scenario)
 			childCtx := ctx
@@ -99,7 +99,7 @@ func (w *worker) simulateTraces() {
 				w.logger.Fatal("limiter waited failed, retry", zap.Error(err))
 			}
 
-			w.logger.Info("scenario completed",
+			w.logger.Debug("scenario completed",
 				zap.String("scenario", scenario),
 				zap.String("traceId", sp.SpanContext().TraceID().String()),
 				zap.String("spanId", sp.SpanContext().SpanID().String()),

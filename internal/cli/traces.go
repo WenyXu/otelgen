@@ -148,6 +148,7 @@ func generateTraces(c *cli.Context, isSingle bool) error {
 		httpExpOpt = append(httpExpOpt, otlptracehttp.WithHeaders(headers))
 		tracesCfg.Headers = headers
 	}
+	httpExpOpt = append(httpExpOpt, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
 
 	var exp *otlptrace.Exporter
 	var err error
@@ -170,7 +171,7 @@ func generateTraces(c *cli.Context, isSingle bool) error {
 		}
 	}()
 
-	ssp := sdktrace.NewBatchSpanProcessor(exp, sdktrace.WithBatchTimeout(time.Second))
+	ssp := sdktrace.NewBatchSpanProcessor(exp, sdktrace.WithBatchTimeout(100*time.Millisecond), sdktrace.WithMaxExportBatchSize(20480), sdktrace.WithMaxQueueSize(1024000))
 	defer func() {
 		logger.Info("stop the batch span processor")
 		if err := ssp.Shutdown(context.Background()); err != nil {

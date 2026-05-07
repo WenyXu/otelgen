@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"time"
 
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
@@ -54,7 +53,7 @@ func MicroservicesScenario(ctx context.Context, tracer trace.Tracer, logger *zap
 		span.AddEvent("operation_started")
 
 		// Simulate some work
-		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
+		// time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 
 		// Add some random attributes based on the service
 		switch microserviceName {
