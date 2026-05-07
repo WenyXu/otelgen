@@ -1,0 +1,31 @@
+internal/cli/traces.go
+  s_0ee7671061ee88::t_71cdd490e42305 76-80,100,108,112-114,163-174,176-178,181-185,188-198
+  h_623774b620da8e 186-187
+  s_0ee7671061ee88::t_004444589d93dc 16
+internal/traces/traces.go
+  s_0ee7671061ee88::t_71cdd490e42305 52,63,79
+  s_0ee7671061ee88::t_48138a9a8422d7 29
+internal/traces/config.go
+  s_0ee7671061ee88::t_71cdd490e42305 8-9,14,21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "863a3f395d062c7322cc1de08a38774b7fdaa6c8",
+  "prompts": {},
+  "humans": {
+    "h_623774b620da8e": {
+      "author": "WenyXu <wenymedia@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_0ee7671061ee88": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_1fe182c00ffepJnTvOvSJ2nKWd",
+        "model": "gpt-5.4"
+      },
+      "human_author": "WenyXu <wenymedia@gmail.com>"
+    }
+  }
+}
