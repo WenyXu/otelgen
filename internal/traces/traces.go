@@ -26,6 +26,7 @@ type worker struct {
 	logger           *zap.Logger
 	scenarios        []string
 	serviceName      string
+	tracerProvider   trace.TracerProvider
 }
 
 func Run(c *Config, logger *zap.Logger) error {
@@ -48,6 +49,7 @@ func Run(c *Config, logger *zap.Logger) error {
 
 	for i := 0; i < c.WorkerCount; i++ {
 		wg.Add(1)
+		provider := c.TracerProviders[i%len(c.TracerProviders)]
 		w := worker{
 			running:          running,
 			numTraces:        c.NumTraces,
@@ -58,6 +60,7 @@ func Run(c *Config, logger *zap.Logger) error {
 			logger:           logger.With(zap.Int("worker", i)),
 			scenarios:        c.Scenarios,
 			serviceName:      c.ServiceName,
+			tracerProvider:   provider,
 		}
 		go w.simulateTraces()
 	}
@@ -73,7 +76,7 @@ func Run(c *Config, logger *zap.Logger) error {
 }
 
 func (w *worker) simulateTraces() {
-	tracer := otel.Tracer(w.serviceName)
+	tracer := w.tracerProvider.Tracer(w.serviceName)
 	limiter := rate.NewLimiter(w.limitPerSecond, 1)
 	var i int
 

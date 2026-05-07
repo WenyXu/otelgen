@@ -7,13 +7,13 @@ import (
 	"time"
 
 	grpcZap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 
 	"github.com/krzko/otelgen/internal/traces"
@@ -73,6 +73,11 @@ func genTracesCommand() *cli.Command {
 						Usage:   "number of workers (goroutines) to run",
 						Value:   1,
 					},
+					&cli.IntFlag{
+						Name:  "exporter-shards",
+						Usage: "number of independent trace exporters/providers to shard across",
+						Value: 1,
+					},
 				},
 				Action: func(c *cli.Context) error {
 					return generateTraces(c, false)
@@ -92,6 +97,7 @@ func generateTraces(c *cli.Context, isSingle bool) error {
 	if isSingle {
 		tracesCfg.NumTraces = 1
 		tracesCfg.WorkerCount = 1
+		tracesCfg.ExporterShards = 1
 		tracesCfg.Scenarios = []string{c.String("scenario")}
 		tracesCfg.PropagateContext = c.Bool("marshal")
 	} else {
@@ -99,8 +105,12 @@ func generateTraces(c *cli.Context, isSingle bool) error {
 		tracesCfg.Rate = c.Int64("rate")
 		tracesCfg.NumTraces = c.Int("number-traces")
 		tracesCfg.WorkerCount = c.Int("workers")
+		tracesCfg.ExporterShards = c.Int("exporter-shards")
 		tracesCfg.Scenarios = c.StringSlice("scenarios")
 		tracesCfg.PropagateContext = c.Bool("marshal")
+	}
+	if tracesCfg.ExporterShards <= 0 {
+		return fmt.Errorf("'exporter-shards' must be greater than 0")
 	}
 
 	if c.String("log-level") == "debug" {
@@ -150,41 +160,42 @@ func generateTraces(c *cli.Context, isSingle bool) error {
 	}
 	httpExpOpt = append(httpExpOpt, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
 
-	var exp *otlptrace.Exporter
-	var err error
-	if tracesCfg.UseHTTP {
-		logger.Info("starting HTTP exporter")
-		exp, err = otlptracehttp.New(context.Background(), httpExpOpt...)
-	} else {
-		logger.Info("starting gRPC exporter")
-		exp, err = otlptracegrpc.New(context.Background(), grpcExpOpt...)
-	}
-
-	if err != nil {
-		logger.Error("failed to obtain OTLP exporter", zap.Error(err))
-		return err
-	}
-	defer func() {
-		logger.Info("stopping the exporter")
-		if err = exp.Shutdown(context.Background()); err != nil {
-			logger.Error("failed to stop the exporter", zap.Error(err))
+	tracerProviders := make([]trace.TracerProvider, 0, tracesCfg.ExporterShards)
+	for i := 0; i < tracesCfg.ExporterShards; i++ {
+		var (
+			exp *otlptrace.Exporter
+			err error
+		)
+		if tracesCfg.UseHTTP {
+			logger.Info("starting HTTP exporter", zap.Int("shard", i))
+			exp, err = otlptracehttp.New(context.Background(), httpExpOpt...)
+		} else {
+			logger.Info("starting gRPC exporter", zap.Int("shard", i))
+			exp, err = otlptracegrpc.New(context.Background(), grpcExpOpt...)
 		}
-	}()
-
-	ssp := sdktrace.NewBatchSpanProcessor(exp, sdktrace.WithBatchTimeout(100*time.Millisecond), sdktrace.WithMaxExportBatchSize(20480), sdktrace.WithMaxQueueSize(1024000))
-	defer func() {
-		logger.Info("stop the batch span processor")
-		if err := ssp.Shutdown(context.Background()); err != nil {
-			logger.Error("failed to stop the batch span processor", zap.Error(err))
+		if err != nil {
+			logger.Error("failed to obtain OTLP exporter", zap.Int("shard", i), zap.Error(err))
+			return err
 		}
-	}()
 
-	tracerProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithResource(resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceNameKey.String(tracesCfg.ServiceName))),
-		sdktrace.WithSpanProcessor(ssp),
-	)
-
-	otel.SetTracerProvider(tracerProvider)
+		provider := sdktrace.NewTracerProvider(
+			sdktrace.WithResource(resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceNameKey.String(tracesCfg.ServiceName))),
+			sdktrace.WithBatcher(
+				exp,
+				sdktrace.WithBatchTimeout(100*time.Millisecond),
+				sdktrace.WithMaxExportBatchSize(4096),
+				sdktrace.WithMaxQueueSize(65536),
+			),
+		)
+		defer func(provider *sdktrace.TracerProvider, shard int) {
+			logger.Info("stopping trace provider", zap.Int("shard", shard))
+			if err := provider.Shutdown(context.Background()); err != nil {
+				logger.Error("failed to stop the trace provider", zap.Int("shard", shard), zap.Error(err))
+			}
+		}(provider, i)
+		tracerProviders = append(tracerProviders, provider)
+	}
+	tracesCfg.TracerProviders = tracerProviders
 
 	if err := traces.Run(tracesCfg, logger); err != nil {
 		logger.Error("failed to run traces", zap.Error(err))

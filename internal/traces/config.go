@@ -5,16 +5,20 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Config struct {
 	WorkerCount      int
+	ExporterShards   int
 	NumTraces        int
 	PropagateContext bool
 	Rate             int64
 	TotalDuration    time.Duration
 	ServiceName      string
 	Scenarios        []string
+	TracerProviders  []trace.TracerProvider
 
 	// OTLP config
 	Endpoint    string
