@@ -1,0 +1,18 @@
+internal/cli/traces.go
+  h_623774b620da8e 151,174
+internal/traces/scenarios/microservices.go
+  h_623774b620da8e 56
+internal/traces/traces.go
+  h_623774b620da8e 81,83,102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "66c0930fddf0def3bc410d8da72e989a943318bb",
+  "prompts": {},
+  "humans": {
+    "h_623774b620da8e": {
+      "author": "WenyXu <wenymedia@gmail.com>"
+    }
+  }
+}
